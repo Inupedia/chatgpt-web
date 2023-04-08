@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT</title>
+    <!-- add style -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: #f5f5f5;
+        font-family: "Roboto", sans-serif;
+      }
+      main {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      form {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      form input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        outline: none;
+      }
+      form button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        background-color: #1e88e5;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      form button:hover {
+        background-color: #1565c0;
+      }
+      #chat-log {
+        height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+      }
+      .message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        color: #fff;
+      }
+      .sent {
+        background-color: #1e88e5;
+        align-self: flex-end;
+      }
+      .received {
+        background-color: #757575;
+        align-self: flex-start;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>ChatGPT</h1>
+      <form action="">
+        <input
+          type="text"
+          name="message"
+          id="message"
+          placeholder="Enter your message"
+        />
+        <button type="submit">Send</button>
+      </form>
+      <div id="chat-log"></div>
+    </main>
+  </body>
+  <script>
+    let messages = [];
+    const chatLog = document.getElementById("chat-log");
+    const message = document.getElementById("message");
+    const form = document.querySelector("form");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const messageText = message.value;
+      const newMessage = { role: "user", content: messageText };
+      messages.push(newMessage);
+      message.value = "";
+      const messageElement = document.createElement("div");
+      messageElement.classList.add("message");
+      messageElement.classList.add("sent");
+      messageElement.innerHTML = `
+        <div class="message sent">
+          <p>${messageText}</p>
+        </div>
+        `;
+      chatLog.appendChild(messageElement);
+      chatLog.scrollTop = chatLog.scrollHeight;
+      fetch("http://localhost:3000", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messages }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          const newAssistantMessage = {
+            role: "assistant",
+            content: data.completion.content,
+          };
+          messages.push(newAssistantMessage);
+          const messageElement = document.createElement("div");
+          messageElement.classList.add("message");
+          messageElement.classList.add("received");
+          messageElement.innerHTML = `
+          <div class="message received">
+            <p>${data.completion.content}</p>
+          </div>
+          `;
+          chatLog.appendChild(messageElement);
+          chatLog.scrollTop = chatLog.scrollHeight;
+        });
+    });
+  </script>
+</html>
